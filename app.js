@@ -5,7 +5,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
-
+const port = 3000;
 var app = express();
 
 // view engine setup
@@ -37,3 +37,4 @@ app.use(function (err, req, res, next) {
 });
 
 module.exports = app;
+app.listen(port, () => console.log(`Listening at http://localhost:${port}`));
