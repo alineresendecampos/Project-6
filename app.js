@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const hbs = require("express-handlebars");
 var cookieParser = require("cookie-parser");
-const auth = require("./routes/auth.js");
+var indexRouter = require("./routes/index");
 const mongoose = require("mongoose");
 
 const PORT = process.env.PORT || 3000;
@@ -24,8 +24,6 @@ db.on("error", function (err) {
   console.log(err);
 });
 
-var indexRouter = require("./routes/index");
-
 const app = express();
 // view engine setup
 app.engine(
@@ -36,12 +34,13 @@ app.engine(
     extname: "hbs",
   })
 );
+app.set("view engine", "hbs");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", indexRouter);
+app.use(indexRouter);
 
 app.listen(PORT, console.log(`Server running on port ${PORT}`));
