@@ -1,0 +1,30 @@
+<div class="container">
+    <div class="row justify-content-md-center" style="margin-top: 30px">
+        <div class="col-md-4">
+            <div class="card">
+                 {{!-- {{#if message}}
+                    <div class="alert {{messageClass}}" role="alert">
+                    {{message}}
+                    </div>
+                {{/if}} --}}
+                <div class="card-header">
+                    Sign-Up
+                </div>
+                <div class="card-body">
+                    <form action="/login" method="POST">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="text" name="email" class="form-control" placeholder="EMAIL" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" name="password" class="form-control" title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters" placeholder="Password" required >
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary">Login</button>
+                    </form>
+                    <a class="mt-3" href="/register">Need an account? Register here.</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
