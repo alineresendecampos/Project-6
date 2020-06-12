@@ -12,9 +12,11 @@
     "express": "~4.16.1",
     "hbs": "~4.0.4",
     "http-errors": "^1.6.3",
+    "mongoose": "^5.9.18",
     "morgan": "~1.9.1"
   },
   "devDependencies": {
+    "express-handlebars": "^4.0.4",
     "nodemon": "^2.0.4"
   }
 }
