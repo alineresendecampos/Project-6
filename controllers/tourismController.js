@@ -2,14 +2,21 @@ const crypto = require('crypto');
 
 // Bring in User Model
 let User = require('../models/users');
+let Location = require('../models/locations');
 
 const tourismController = {
     /*
         Display HomePage Page
         */
     getHomePage: (req, res) => {
+        var user_active = true;
+        if(req.userID == undefined)
+            user_active = false;
+            //A query to retrieve isvalid=true locations from db .
+
         res.render('home', {
-            title: "Locations"
+            title: "Locations",
+            user_active
         });
     },
     /*
@@ -18,8 +25,14 @@ const tourismController = {
     getRegisterPage: (req, res) => {
         res.render('register');
     },
+    /*
+    Display Locations Details Page
+    */
+   getLocationDetailPage: (req, res) => {
+    res.render('details');
+},
 
-
+    
     /*
     Register User details
     */
@@ -61,18 +74,14 @@ const tourismController = {
         } else {
             //Check if password and conform password matches
             if (password === confirmPassword) {
-
                 const sha256 = crypto.createHash('sha256');
                 const hashedPassword = sha256.update(password).digest('base64');
-
-
                 let newUser = new User({
                     firstName: firstName,
                     lastName: lastName,
                     email: email,
                     password: hashedPassword
                 });
-
                 newUser.save(function (err) {
                     if (err) {
                         console.log(err);
@@ -92,14 +101,121 @@ const tourismController = {
             }
         }
     },
-
-
     /*
     Display Login Page
     */
     getLoginPage: (req, res) => {
         res.render('login');
     },
+     /*
+    Verify User Details
+    */
+   verifyLogin :(req, res,next)=> {
+    const {email,password}=req.body;
+    const sha256 = crypto.createHash('sha256');
+    const hashedPassword = sha256.update(password).digest('base64');
+    console.log("Email and pwd :" + email + " "+ password)
+    //validateEmail(email,userdetails=>{
+        const queryEmail ={email:email};
+        User.findOne(queryEmail,(err,user)=>{
+            if(!user){
+                console.log("Account doesnot exists"+user)
+                res.render('login', {
+                    message: 'Account doesnot exist!!Please register your account.',
+                    messageClass: 'alert-danger'
+                });
+            }else{
+                console.log("Account exists"+JSON.stringify(user))
+                if(hashedPassword == user.password){
+                    res.status('200');
+                    console.log("********VALID USER"+user._id)
+                    //const userIdValue=Object.values(userdetails[0]);
+                    //
+                    req.userID=user._id;
+                    next();
+                }else{
+                    res.render('login', {
+                        message: 'Password Mismatch!Please enter valid password.',
+                        messageClass: 'alert-danger'
+                    });
+                }
+            }
+        });
+}, 
+    /*
+    Search the Location by name
+    */
+   searchLocation: (req, res) => {
+    //const {rating,ID}= req.body;
+        //const {location}=req.body;
+        console.log("User searched item:"+`${req.query.locationVal}`);
+        const locationquery={name:`${req.query.locationVal}`};
+        console.log("*********Query is*******"+JSON.stringify(locationquery) );
+        Location.findOne(locationquery,(err,Location)=>{
+            console.log("locations length"+JSON.stringify(Location))
+            if(err){
+                console.log("locations"+JSON.stringify(Location))
+                console.log(err);
+            }else{ 
+                res.render('partials/homelocations', {
+                    layout: false,
+                    //locations: Location.Location,
+                    objId:Location._id,
+                    name: Location.name,
+                    description:Location.description,
+                    isValidated:Location.isValidated
+                    //locationslength: Location.locations.length > 0
+                });
+            }
+        })
+    /* })
+    .catch(error => {
+        console.log(error);
+    }); */
+},
+    /*
+    Display LocationPage
+    */
+    getLocationPage: (req, res) => {
+        res.render('location');
+    },
+    /*
+    Submit location details to Database
+    */
+    submitLocationPage: (req,res) => {
+        console.log("**Inside submitLocationPage****");
+        //const { email, firstName, lastName, password, confirmPassword } = req.body;
+        const { locationName , description } = req.body;
+        
+        const pattern = "^[a-zA-Z][a-zA-Z ]+[a-zA-Z]+$";
+        const descriptionpattern = "^[a-zA-Z][a-zA-Z. ]+[a-zA-Z.]+$";
+        console.log("Location name and description:"+locationName+description)
 
+        if ( !locationName.match(pattern)) {
+            res.render('location', {
+                message: 'Please enter Valid location name',
+                messageClass: 'alert-danger'
+            });
+        }else if (!description.match(descriptionpattern)) {
+            res.render('location', {
+                message: 'Please enter Valid description',
+                messageClass: 'alert-danger'
+            });
+        }else {
+                let newLocation = new Location({
+                    name: locationName,
+                    description: description,
+                    isValidated: false
+                }).save(function(err,doc){
+                      if(err) res.json(err);
+                      else {
+                        res.render('home', {
+                            message: 'Congrats!Your location has been created successfuly!Please wait for administrator to approve it!',
+                            messageClass: 'alert-success'
+                        });
+                      }
+                });
+        }
+    }
 }
 module.exports = tourismController;
