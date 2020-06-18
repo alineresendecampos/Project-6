@@ -1,32 +1,32 @@
-
-
-<div class="container"  style="margin-top: 30px">
+<div class="container" style="margin-top: 30px">
     <ul class="nav justify-content-end">
         <li class="nav-item">
             <a class="nav-link" href="/">Home</a>
         </li>
         {{#if user_active}}
-            <li class="nav-item">
-                <a class="nav-link" href="/logout">Logout</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/">My Profile</a>
-            </li>
-            {{else}}
-            <li>
-                <a class="nav-link" href="/login">Login</a>
-            </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/logout">Logout</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/userprofile/{{user_id}}">My Profile</a>
+        </li>
+        {{else}}
+        <li>
+            <a class=" nav-link" href="/login">Login</a>
+        </li>
         {{/if}}
     </ul>
     <div>
         {{#if message}}
-            <div class="alert {{messageClass}}" role="alert">
-                {{message}}
-            </div>
+        <div class="alert {{messageClass}}" role="alert">
+            {{message}}
+        </div>
         {{/if}}
     </div>
     {{#unless user_active}}
-        <span class="text-center font-italic font-weight-bold"><h5>Please login to create locations!!</h3></span>
+    <span class="text-center font-italic font-weight-bold">
+        <h5>Please login to create locations!!</h3>
+    </span>
     {{/unless}}
     <h2>Locations List</h2>
     <p>Type something in the input field to search for the places u wish to see!.</p>
@@ -36,10 +36,10 @@
             <button class="btn btn-success" type="submit" id="searchbutton">Go</button>
         </div>
         {{#if user_active}}
-            <div class="input-group-append">
-                <a href="/newLocation"><button class="btn btn-success">Create New Location</button></a>
-            </div>
-        {{/if}} 
+        <div class="input-group-append">
+            <a href="/newLocation"><button class="btn btn-success">Create New Location</button></a>
+        </div>
+        {{/if}}
     </div>
     <table class="table table-bordered table-striped">
         <thead>
@@ -52,57 +52,20 @@
             </tr>
         </thead>
         <tbody id="myTable">
-             {{> homelocations}}
+            {{> homelocations}}
         </tbody>
-    </table>    
-</div>   
-<script >
-    $(document).ready(function(){
-    var locationname = $("#locationname");
-    $("#searchbutton").click(searchMovie);
-    function searchMovie() {
-        var locationVal = locationname.val();
-        $.get('/searchLocation?locationVal=' + escape(locationVal), function (homelocations) {
-            console.log('success,homelocations');
-            $('#myTable').html(homelocations);
-        });
-         {{!--  if(locationVal != undefined || locationVal != null){
-            $.ajax({
-                // The URL for the request
-                url:"http://localhost:3000/searchLocation/",
-
-                // The data to send (will be converted to a query string)
-                data:{
-                    location: locationVal
-                },
-
-                // Whether this is a POST or GET request
-                type:"GET",
-
-                // The type of data we expect back
-                dataType :"json",
-            })
-                // Code to run if the request succeeds (is done);
-                // The response is passed to the function
-            .done(function(homelocations) {
-                console.log(homelocations);
+    </table>
+</div>
+<script>
+    $(document).ready(function () {
+        var locationname = $("#locationname");
+        $("#searchbutton").click(searchLocation);
+        function searchLocation() {
+            var locationVal = locationname.val();
+            $.get('/searchLocation?locationVal=' + escape(locationVal), function (homelocations) {
                 console.log('success,homelocations');
-                $('#myTable').html(homelocations);   
-                
-            })
-                // Code to run if the request fails; the raw request and
-                // status codes are passed to the function
-            .fail(function( xhr, status, errorThrown ) {
-                alert( "Sorry,there was a problem!" );
-                console.log( "Error: " + errorThrown );
-                console.log( "Status: " + status );
-                console.dir( xhr );
-            })
+                $('#myTable').html(homelocations);
+            });
         }
-        else{
-            alert("Please enter valid location name!!");
-        } --}}
-    }
-});
-</script>      
-
+    });
+</script>

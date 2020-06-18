@@ -1,13 +1,21 @@
- {{!-- {{#if locationslength}} --}}
-    {{!-- {{#each locations}} --}}
-        <tr>
-            {{!-- <td><a href="/movie/{{this.id}}"><img src="https://image.tmdb.org/t/p/w185/{{this.poster_path}}" alt="Poster Image"></a></td> --}}
-            <td><a href="/location/{{objId}}">{{name}}</a></td>
-            <td>{{description}}</td>
-            <td>{{comments}}</td>
-            <td>{{recommendations}}</td>
-        </tr>
-   {{!--  {{/each}} --}}
+<div>
+    {{#if message}}
+    <div class="alert {{messageClass}}" role="alert">
+        {{message}}
+    </div>
+    {{/if}}
+</div>
+
+{{!-- {{#if locationslength}} --}}
+{{!-- {{#each locations}} --}}
+<tr>
+    {{!-- <td><a href="/movie/{{this.id}}"><img src="https://image.tmdb.org/t/p/w185/{{this.poster_path}}" alt="Poster Image"></a></td> --}}
+    <td><a href="/location/{{objId}}">{{name}}</a></td>
+    <td>{{description}}</td>
+    <td>{{comments}}</td>
+    <td>{{recommendations}}</td>
+</tr>
+{{!--  {{/each}} --}}
 {{!-- {{else}}
 <tr>
     <td colspan="5">No valid locations !!</td>

@@ -1,14 +1,38 @@
 <div class="mt-5">
     <ul class="nav justify-content-end">
         <li class="nav-item">
-            <a class="nav-link" href="/">Movies Home</a>
+            <a class="nav-link" href="/">Home</a>
         </li>
         <li class="nav-item">
             {{#if user_active}}
-                <a class="nav-link" href="/logout">Logout</a>
+            <a class="nav-link" href="/logout">Logout</a>
             {{else}}
-                <a class="nav-link" href="/login">Login</a>
+            <a class="nav-link" href="/login">Login</a>
             {{/if}}
         </li>
     </ul>
-   
+    {{#unless user_active}}
+    <span class="text-center font-italic font-weight-bold">
+        <h5>Please login to leave likes and comments!!</h3>
+    </span>
+    {{/unless}}
+    <div class="row">
+        <div class="col-sm-4"><a href="#">Image</a></div>
+        <div class="col-sm-8" id="locationitems">
+            <ul class="list-group">
+                <li class="list-group-item">
+                    {{name}}
+                </li>
+                <li class="list-group-item">
+                    {{description}}
+                </li>
+                <li class="list-group-item">
+                    {{comments}}
+                </li>
+                <li class="list-group-item">
+                    {{likes}}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

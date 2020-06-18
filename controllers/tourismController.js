@@ -10,15 +10,24 @@ const tourismController = {
         */
     getHomePage: (req, res) => {
         var user_active = true;
-        if(req.userID == undefined)
-            user_active = false;
-            //A query to retrieve isvalid=true locations from db .
+        if (req.id == undefined) user_active = false;
+        let user_id = req.id
+        //A query to retrieve isvalid=true locations from db .
 
         res.render('home', {
             title: "Locations",
+            user_id,
             user_active
         });
     },
+
+    /*
+    Validate homepage
+    */
+    getValidHome: (req, res) => {
+        res.redirect("/");
+    },
+
     /*
     Display Register Form
     */
@@ -28,11 +37,31 @@ const tourismController = {
     /*
     Display Locations Details Page
     */
-   getLocationDetailPage: (req, res) => {
-    res.render('details');
-},
+    getLocationDetailPage: (req, res) => {
+        var user_active = true;
+        var userRatingValue = false;
+        var userRatingFromDB = "";
+        if (req.id == undefined) {
+            user_active = false;
+        } else {
+            let userID = req.id[0];
+            let condition = { _id: req.params.id }
+            Location.findById(condition).lean().exec((err, Location) => {
+                if (err) {
+                    console.log("locations" + JSON.stringify(Location));
+                    console.log(err);
+                } else {
+                    res.render("details", {
+                        user_active,
+                        name: Location.name,
+                        description: Location.description,
+                    });
+                }
+            });
+        }
+    },
 
-    
+
     /*
     Register User details
     */
@@ -107,33 +136,33 @@ const tourismController = {
     getLoginPage: (req, res) => {
         res.render('login');
     },
-     /*
-    Verify User Details
-    */
-   verifyLogin :(req, res,next)=> {
-    const {email,password}=req.body;
-    const sha256 = crypto.createHash('sha256');
-    const hashedPassword = sha256.update(password).digest('base64');
-    console.log("Email and pwd :" + email + " "+ password)
-    //validateEmail(email,userdetails=>{
-        const queryEmail ={email:email};
-        User.findOne(queryEmail,(err,user)=>{
-            if(!user){
-                console.log("Account doesnot exists"+user)
+    /*
+   Verify login
+   */
+    verifyLogin: (req, res, next) => {
+        const { email, password } = req.body;
+        const sha256 = crypto.createHash('sha256');
+        const hashedPassword = sha256.update(password).digest('base64');
+        console.log("Email and pwd :" + email + " " + password)
+        //validateEmail(email,userdetails=>{
+        const queryEmail = { email: email };
+        User.findOne(queryEmail, (err, user) => {
+            if (!user) {
+                console.log("Account doesnot exists" + user)
                 res.render('login', {
                     message: 'Account doesnot exist!!Please register your account.',
                     messageClass: 'alert-danger'
                 });
-            }else{
-                console.log("Account exists"+JSON.stringify(user))
-                if(hashedPassword == user.password){
+            } else {
+                console.log("Account exists" + JSON.stringify(user))
+                if (hashedPassword == user.password) {
                     res.status('200');
-                    console.log("********VALID USER"+user._id)
+                    console.log("********VALID USER" + user._id)
                     //const userIdValue=Object.values(userdetails[0]);
                     //
-                    req.userID=user._id;
+                    req.userID = user._id;
                     next();
-                }else{
+                } else {
                     res.render('login', {
                         message: 'Password Mismatch!Please enter valid password.',
                         messageClass: 'alert-danger'
@@ -141,81 +170,112 @@ const tourismController = {
                 }
             }
         });
-}, 
+    },
     /*
     Search the Location by name
     */
-   searchLocation: (req, res) => {
-    //const {rating,ID}= req.body;
+    searchLocation: (req, res) => {
+        //const {rating,ID}= req.body;
         //const {location}=req.body;
-        console.log("User searched item:"+`${req.query.locationVal}`);
-        const locationquery={name:`${req.query.locationVal}`};
-        console.log("*********Query is*******"+JSON.stringify(locationquery) );
-        Location.findOne(locationquery,(err,Location)=>{
-            console.log("locations length"+JSON.stringify(Location))
-            if(err){
-                console.log("locations"+JSON.stringify(Location))
+        console.log("User searched item:" + `${req.query.locationVal}`);
+        const locationquery = { name: `${req.query.locationVal}` };
+        console.log("*********Query is*******" + JSON.stringify(locationquery));
+        Location.findOne(locationquery, (err, Location) => {
+            console.log("locations length" + JSON.stringify(Location));
+            if (err) {
+                console.log("locations" + JSON.stringify(Location));
                 console.log(err);
-            }else{ 
-                res.render('partials/homelocations', {
+            } else {
+                res.render("partials/homelocations", {
                     layout: false,
                     //locations: Location.Location,
-                    objId:Location._id,
+                    objId: Location._id,
                     name: Location.name,
-                    description:Location.description,
-                    isValidated:Location.isValidated
+                    description: Location.description,
+                    isValidated: Location.isValidated,
                     //locationslength: Location.locations.length > 0
                 });
             }
-        })
-    /* })
-    .catch(error => {
-        console.log(error);
-    }); */
-},
+        });
+    },
+
+
     /*
     Display LocationPage
     */
     getLocationPage: (req, res) => {
         res.render('location');
     },
+
     /*
     Submit location details to Database
     */
-    submitLocationPage: (req,res) => {
+    submitLocationPage: (req, res) => {
         console.log("**Inside submitLocationPage****");
         //const { email, firstName, lastName, password, confirmPassword } = req.body;
-        const { locationName , description } = req.body;
-        
-        const pattern = "^[a-zA-Z][a-zA-Z ]+[a-zA-Z]+$";
-        const descriptionpattern = "^[a-zA-Z][a-zA-Z. ]+[a-zA-Z.]+$";
-        console.log("Location name and description:"+locationName+description)
+        const { locationName, description } = req.body;
 
-        if ( !locationName.match(pattern)) {
+        const pattern = "^[a-zA-Z][a-zA-Z ]+[a-zA-Z ]+$";
+        const descriptionpattern = "^[a-zA-Z][a-zA-Z. ]+[a-zA-Z. ]+$";
+        console.log("Location name and description:" + locationName + description)
+
+        if (!locationName.match(pattern)) {
             res.render('location', {
                 message: 'Please enter Valid location name',
                 messageClass: 'alert-danger'
             });
-        }else if (!description.match(descriptionpattern)) {
+        } else if (!description.match(descriptionpattern)) {
             res.render('location', {
                 message: 'Please enter Valid description',
                 messageClass: 'alert-danger'
             });
-        }else {
-                let newLocation = new Location({
-                    name: locationName,
-                    description: description,
-                    isValidated: false
-                }).save(function(err,doc){
-                      if(err) res.json(err);
-                      else {
-                        res.render('home', {
-                            message: 'Congrats!Your location has been created successfuly!Please wait for administrator to approve it!',
-                            messageClass: 'alert-success'
-                        });
-                      }
-                });
+        } else {
+            let newLocation = new Location({
+                name: locationName,
+                description: description,
+                isValidated: false
+            }).save(function (err, doc) {
+                if (err) res.json(err);
+                else {
+                    res.render('home', {
+                        message: 'Congrats!Your location has been created successfuly!Please wait for administrator to approve it!',
+                        messageClass: 'alert-success'
+                    });
+                }
+            });
+        }
+    },
+
+    /*
+    Display user profile details
+    */
+    getUserProfile: (req, res) => {
+        let user_active = true;
+        let user_id = req.params.id;
+        if (req.id == undefined) {
+            user_active = false;
+        } else {
+            let userID = req.id[0];
+            let condition = { _id: req.params.id }
+            User.findById(condition).lean().exec((err, User) => {
+                //User.findOne(, function (err, User) {
+                if (err) {
+                    console.log("User profile" + JSON.stringify(User));
+                    console.log(err)
+                } else {
+                    console.log(User)
+                    res.render('userprofile', {
+                        user_active,
+                        firstName: User.firstName,
+                        lastName: User.lastName,
+                        email: User.email,
+                    });
+                }
+
+            });
+
         }
     }
+
 }
 module.exports = tourismController;
