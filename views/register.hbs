@@ -1,4 +1,11 @@
-<div class="row justify-content-md-center bg-light mb-3" style="margin-top: 50px">
+<div class="container" style="margin-top: 30px">
+    <ul class="nav justify-content-end">
+        <li class="nav-item">
+            <a class="nav-link" href="/"> 📍</a>
+        </li>
+    </ul>
+</div>
+<div class="row justify-content-md-center bg-light mb-3" style="margin-top: 20px">
     <div class="col-md-4" style="margin-top: 70px">
         <h3>SAS Tourism Agency Welcomes you!</h3>
         <br>
@@ -6,30 +13,37 @@
     </div>
     <div class="col-md-4" style="margin-top: 50px">
         {{#if message}}
-            <div class="alert {{messageClass}}" role="alert">
-                {{message}}
-            </div>
+        <div class="alert {{messageClass}}" role="alert">
+            {{message}}
+        </div>
         {{/if}}
         <form method="POST" action="/register">
             <div class="form-group">
                 <label for="firstName">First Name <sup>*</sup></label>
-                <input name="firstName" type="text" class="form-control" id="firstName" required>
+                <input name="firstName" type="text" class="form-control" id="firstName" required
+                    placeholder="Enter name">
             </div>
             <div class="form-group">
                 <label for="lastName">Last Name <sup>*</sup></label>
-                <input name="lastName" type="text" class="form-control" id="lastName" required>
+                <input name="lastName" type="text" class="form-control" id="lastName" required
+                    placeholder="Enter surname">
             </div>
             <div class="form-group">
                 <label for="email">Email address <sup>*</sup></label>
-                <input name="email" type="email" class="form-control" id="email" required placeholder="Enter email" title="Please use this detail as your userid to login!">
+                <input name="email" type="email" class="form-control" id="email" required placeholder="Enter email"
+                    title="Please use this detail as your userid to login!">
             </div>
             <div class="form-group">
                 <label for="password">Password <sup>*</sup></label>
-                <input name="password" type="password" class="form-control" id="password"  required title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters" placeholder="Password" >
+                <input name="password" type="password" class="form-control" id="password" required
+                    title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
+                    placeholder="Password">
             </div>
             <div class="form-group">
                 <label for="confirmPassword">Confirm Password <sup>*</sup></label>
-                <input name="confirmPassword" type="password" class="form-control" title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters" id="confirmPassword" placeholder="Re-enter your password here">
+                <input name="confirmPassword" type="password" class="form-control"
+                    title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
+                    id="confirmPassword" placeholder="Re-enter your password here">
             </div>
             <button type="submit" class="btn btn-primary">Register</button>
         </form>
