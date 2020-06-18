@@ -6,9 +6,10 @@ let locationsSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  locationImage: {
-    type: String,
-    required: true,
+  locationImage: { 
+    data: Buffer, 
+    contentType: String,
+    required: false,
   },
   description: {
     type: String,
@@ -20,11 +21,11 @@ let locationsSchema = mongoose.Schema({
   },
   comments: {
     type: String,
-    required: true,
+    required: false,
   },
   likes: {
     type: Number,
-    required: true,
+    required: false,
   },
 });
 
