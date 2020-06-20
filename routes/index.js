@@ -12,6 +12,9 @@ const { getHomePage,
   submitLocationPage,
   searchLocation,
   getUserProfile,
+  updateFirstNameUserProfile,
+  updateLastNameUserProfile,
+  updatePasswordUserProfile,
   getLocationDetailPage } = require('../controllers/tourismController');
 
 const { verifyAuthToken,
@@ -32,18 +35,18 @@ Display Register page
 router.get('/register', getRegisterPage);
 
 /*
-Submits User details
+Registration of new user
 */
 router.post('/register', submitUserRegistration);
 
 
 /*
-Display Home page
+Display login
 */
 router.get('/login', getLoginPage);
 
 /*
-Display TourismHome page
+Validate login
 */
 router.post('/login', [verifyLogin, setAuthToken, verifyAuthToken], getValidHome);
 
@@ -69,6 +72,21 @@ router.get('/searchLocation', verifyAuthToken, searchLocation);
 Display User profile page
 */
 router.get('/userprofile/:id', verifyAuthToken, getUserProfile);
+
+/*
+Update first name
+*/
+router.post('/userprofile/edit/firstname', verifyAuthToken, updateFirstNameUserProfile);
+
+/*
+Update surname
+*/
+router.post('/userprofile/edit/lastname', verifyAuthToken, updateLastNameUserProfile);
+
+/*
+Update surname
+*/
+router.post('/userprofile/edit/password', verifyAuthToken, updatePasswordUserProfile);
 
 module.exports = router;
 
