@@ -37,27 +37,41 @@ const tourismController = {
     /*
     Display Locations Details Page
     */
-    getLocationDetailPage: (req, res) => {
-        var user_active = true;
-        if (req.id == undefined) {
-            user_active = false;
-        }
-
-        // let userID = req.id[0];
-        let condition = { _id: req.params.id }
+   getLocationDetailPage: (req, res) => {
+    console.log("***req.id"+req.id)
+    var user_active = true;
+    var commentsValue = false;
+    var commentsFromDB = ""; 
+    if (req.id == undefined) {
+        user_active = false;
+    } 
+        let userID = req.id;
+        let condition = { _id: req.params.id };
+        Location.findOne(condition,{comments:1,_id:0},(err,Location)=>{
+            if(Location.comments == undefined){
+               commentsValue=false;
+            }else{
+                commentsValue=true;
+                commentsFromDB=Location.comments;
+            }
+        });
         Location.findById(condition).lean().exec((err, Location) => {
             if (err) {
-                console.log("locations" + JSON.stringify(Location));
                 console.log(err);
             } else {
                 res.render("details", {
                     user_active,
+                    commentsValue,commentsFromDB,
+                    objId: Location._id,
                     name: Location.name,
                     description: Location.description,
+                    likes:Location.likes
                 });
             }
         });
-    },
+    
+},
+
 
 
     /*
@@ -170,8 +184,6 @@ const tourismController = {
     Search the Location by name
     */
     searchLocation: (req, res) => {
-        //const {rating,ID}= req.body;
-        //const {location}=req.body;
         console.log("User searched item:" + `${req.query.locationVal}`);
         const locationquery = { name: `${req.query.locationVal}` };
         console.log("*********Query is*******" + JSON.stringify(locationquery));
@@ -183,23 +195,26 @@ const tourismController = {
             } else {
                 res.render("partials/homelocations", {
                     layout: false,
-                    //locations: Location.Location,
                     objId: Location._id,
                     name: Location.name,
                     description: Location.description,
                     isValidated: Location.isValidated,
-                    //locationslength: Location.locations.length > 0
                 });
             }
         });
     },
 
-
     /*
     Display LocationPage
     */
     getLocationPage: (req, res) => {
-        res.render('location');
+        var user_active = true;
+        if (req.id == undefined) {
+            user_active = false;
+        }
+        res.render('location',{
+            user_active
+        });
     },
 
     /*
@@ -207,9 +222,7 @@ const tourismController = {
     */
     submitLocationPage: (req, res) => {
         console.log("**Inside submitLocationPage****");
-        //const { email, firstName, lastName, password, confirmPassword } = req.body;
         const { locationName, description } = req.body;
-
         const pattern = "^[a-zA-Z][a-zA-Z ]+[a-zA-Z ]+$";
         const descriptionpattern = "^[a-zA-Z][a-zA-Z. ]+[a-zA-Z. ]+$";
         console.log("Location name and description:" + locationName + description)
@@ -267,6 +280,9 @@ const tourismController = {
         });
     },
 
+    /*
+    Update first name of user.
+    */
     updateFirstNameUserProfile: (req, res) => {
         console.log("inside function update fn")
         var user_active = true;
@@ -300,7 +316,9 @@ const tourismController = {
 
     },
 
-
+    /*
+    Update Last name of user.
+    */
     updateLastNameUserProfile: (req, res) => {
         console.log("inside function ln")
         var user_active = true;
@@ -333,7 +351,9 @@ const tourismController = {
 
         })
     },
-
+    /*
+    Update password of user.
+    */
     updatePasswordUserProfile: (req, res) => {
         console.log("inside function pwd")
         var user_active = true;
@@ -375,6 +395,49 @@ const tourismController = {
                 })
             };
         })
+    },
+
+    /*
+    Update user comments into database.
+    */
+    postComments: (req, res) => {
+        console.log("********Inside postComments***********");
+        const {commentsVal,locationId}= req.body;
+        // const activeuserid= req.id[0];
+        console.log("User Comments" + commentsVal);
+        console.log("locationId" + locationId);
+        const userComments = { comments: commentsVal };
+        const locationObjId= { _id: locationId };
+        console.log("*********User comments in object is*******" + JSON.stringify(userComments));
+        console.log("*********Location id  is*******" + JSON.stringify(locationObjId));
+        Location.update(locationObjId,userComments,(err,results)=>{
+            if(err){
+                console.log(err);
+                return;
+            }else{
+                res.send(results);
+            }
+        });
+    },
+    /*
+    Update user likes into database.
+    */
+    updateLikes: (req, res) => {
+        console.log("********Inside updateLikes***********");
+        const {locationId}= req.body;
+        // const activeuserid= req.id[0];
+        console.log("locationId" + locationId);
+        const locationObjId = { _id: locationId };
+        const update = { $inc: { likes: 1 } };
+        console.log("*********Location id  is*******" + JSON.stringify(locationObjId));
+        Location.update(locationObjId,update,(err,results)=>{
+            if(err){
+                console.log(err);
+                return;
+            }else{
+                res.send(results);
+            }
+        });
     },
 }
 

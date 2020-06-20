@@ -1,7 +1,7 @@
 <div class="mt-5">
     <ul class="nav justify-content-end">
         <li class="nav-item">
-            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link" href="/">🏠</a>
         </li>
         <li class="nav-item">
             {{#if user_active}}
@@ -21,18 +21,117 @@
         <div class="col-sm-8" id="locationitems">
             <ul class="list-group">
                 <li class="list-group-item">
-                    {{name}}
+                  <h2>{{name}}</h2>  
                 </li>
                 <li class="list-group-item">
-                    {{description}}
+                    <p>Description: {{description}}</p>
                 </li>
-                <li class="list-group-item">
-                    {{comments}}
-                </li>
-                <li class="list-group-item">
-                    {{likes}}
-                </li>
+                {{#if user_active}}
+                    <li class="list-group-item" >
+                        <button id="locationIdValue" value="{{objId}}"><i class="fa fa-thumbs-up" id="likesButton"></i></button>
+                     {{#if likes}}
+                            {{likes}} 👍
+                    {{/if}}
+                    </li>
+                    {{#if commentsValue}}
+                        <li class="list-group-item" id="commentsFromDB">
+                             Comments : <i>{{commentsFromDB}}</i>
+                        </li>
+                    {{/if}}
+                   
+                    <li class="list-group-item">
+                        <div class="form-group" id="hidden-comments-div">
+                            
+                            <input name="comments" type="text" class="form-control" id="comments"
+                                    placeholder="Enter your comments !"><br>
+                            <button type="submit" class="btn btn-primary" id="postComments" value="{{objId}}">Post Comments!</button>
+                        </div>
+                    </li>
+                    
+                {{else}}
+                    {{#if commentsValue}}
+                        <li class="list-group-item">
+                            Comments : <i>{{commentsFromDB}}</i> 
+                        </li> 
+                    {{/if}}
+                    {{#if likes}}
+                        <li class="list-group-item">
+                            {{likes}} 👍
+                        </li> 
+                    {{/if}}
+                {{/if}}
             </ul>
         </div>
     </div>
 </div>
+<script>
+$(document).ready(function () {
+    var locationId = $("#locationIdValue").val();
+    var commentsVal = $("#comments").val();
+    $("#likesButton").on('click',function() {
+        console.log("**********value of locationid is"+locationId)
+        console.log("*********likes*")
+        $.ajax({
+            // The URL for the request
+            url:"http://localhost:3000/updateLikes/",
+            // The data to send (will be converted to a query string)
+            data:{
+                locationId
+            },
+            // Whether this is a POST or GET request
+            type:"POST",
+            // The type of data we expect back
+            dataType :"json",
+        })
+            // Code to run if the request succeeds (is done);
+            // The response is passed to the function
+        .done(function( json ) {
+            console.log(json);
+            $('#locationIdValue').hide();
+            var new_li = $('<li>Thanks for Recomendation!</li>').addClass('list-group-item');
+            new_li.insertAfter('#locationIdValue');  
+        })
+            // Code to run if the request fails; the raw request and
+            // status codes are passed to the function
+        .fail(function( xhr, status, errorThrown ) {
+            alert( "Sorry,there was a problem!" );
+            console.log( "Error: " + errorThrown );
+            console.log( "Status: " + status );
+        })
+    });
+    
+    $("#postComments").on('click',function() {
+        var commentsVal = $("#comments").val();
+        console.log("User entered comments"+commentsVal);
+        console.log("locationID"+locationId);
+            $.ajax({
+            // The URL for the request
+            url:"http://localhost:3000/postComments/",
+            // The data to send (will be converted to a query string)
+            data:{
+                commentsVal:commentsVal,
+                locationId:locationId
+            },
+            // Whether this is a POST or GET request
+            type:"POST",
+            // The type of data we expect back
+            dataType :"json",
+        })
+            // Code to run if the request succeeds (is done);
+            // The response is passed to the function
+        .done(function( json ) {
+            console.log(json);
+            $('#commentsFromDB').append(commentsVal);
+            $("#comments").txt(''); 
+            
+        })
+            // Code to run if the request fails; the raw request and
+            // status codes are passed to the function
+        .fail(function( xhr, status, errorThrown ) {
+            alert( "Sorry,there was a problem!" );
+            console.log( "Error: " + errorThrown );
+            console.log( "Status: " + status );
+        })
+    });
+});
+</script>

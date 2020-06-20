@@ -1,7 +1,5 @@
 var express = require("express");
 var router = express.Router();
-let User = require('../models/users');
-
 const { getHomePage,
   getLoginPage,
   verifyLogin,
@@ -15,7 +13,7 @@ const { getHomePage,
   updateFirstNameUserProfile,
   updateLastNameUserProfile,
   updatePasswordUserProfile,
-  getLocationDetailPage } = require('../controllers/tourismController');
+  getLocationDetailPage,postComments,updateLikes} = require('../controllers/tourismController');
 
 const { verifyAuthToken,
   setAuthToken,
@@ -57,7 +55,7 @@ router.get('/logout', verifyAuthToken, unsetAuthToken);
 /*
 Display Location page
 */
-router.get('/newLocation', getLocationPage);
+router.get('/newLocation',verifyAuthToken, getLocationPage);
 /*
 Submit Location page
 */
@@ -84,9 +82,19 @@ Update surname
 router.post('/userprofile/edit/lastname', verifyAuthToken, updateLastNameUserProfile);
 
 /*
-Update surname
+Update password
 */
 router.post('/userprofile/edit/password', verifyAuthToken, updatePasswordUserProfile);
+
+/*
+Post comments
+*/
+router.post('/postComments', verifyAuthToken, postComments);
+
+/*
+Display respective Location Page
+*/
+router.post('/updateLikes',verifyAuthToken, updateLikes);
 
 module.exports = router;
 
