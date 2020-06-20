@@ -1,14 +1,14 @@
 <div class="container" style="margin-top: 30px">
     <ul class="nav justify-content-end">
         <li class="nav-item">
-            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link" href="/">🏠</a>
         </li>
         {{#if user_active}}
         <li class="nav-item">
             <a class="nav-link" href="/logout">Logout</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/userprofile/{{user_id}}">My Profile</a>
+            <a class="nav-link" href="/userprofile/{{user_id}}">My Profile 👤</a>
         </li>
         {{else}}
         <li>
@@ -63,7 +63,6 @@
         function searchLocation() {
             var locationVal = locationname.val();
             $.get('/searchLocation?locationVal=' + escape(locationVal), function (homelocations) {
-                console.log('success,homelocations');
                 $('#myTable').html(homelocations);
             });
         }
