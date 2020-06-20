@@ -15,52 +15,122 @@
 
 </div>
 
-<div class="row justify-content-md-center bg-light mb-3" style="margin-top: 10px">
-    <div class="col-md-6" style="margin-top: 70px">
-        <h1>🎒 User profile</h1>
-        <p><b>Name: </b>{{firstName}}</p>
-        <p><b>Surname: </b>{{lastName}}</p>
-        <p><b>Email: </b> {{email}}</p>
-        <button id="edit" type="edit" class="btn btn-primary">Edit profile</button>
+<div class="container" style="margin-top: 30px">
 
+    {{#if message}}
+    <div class="alert {{messageClass}}" role="alert">
+        {{message}}
     </div>
+    {{/if}}
 
-    <div class="col-md-4" style="margin-top: 50px">
-        {{#if message}}
-        <div class="alert {{messageClass}}" role="alert">
-            {{message}}
+    <h1 class="ml-5">🎒 User profile</h1>
+    <br>
+
+    <div class="row justify-content-center mb-4">
+        <div class="form-row ">
+            <div class="col-xl">
+                <label class="h3" for="firstName">Name: {{firstName}} </label>
+            </div>
+            {{#if user_active}}
+            <div class="col-md-1">
+                <button onclick="myFunctionFn()">Edit</button>
+            </div>
+            {{/if}}
         </div>
-        {{/if}}
-        {{!-- <div class="col-md-6"> --}}
-        <form id="show" action="POST" action="/userprofile">
-            <div class="form-group">
-                <label for="firstName">Name:</label>
-                <input name="firstName" type="text" class="form-control" id="firstName"
-                    placeholder="Update your name...">
-            </div>
-            <div class="form-group">
-                <label for="lastName">Last Name:</label>
-                <input name="lastName" type="text" class="form-control" id="lastName"
-                    placeholder="Update your last name...">
-            </div>
-            <div class="form-group">
-                <label for="email">Email address:</label>
-                <input name="email" type="email" class="form-control" id="email" placeholder="Update your email.."
-                    title="Please use this detail as your userid to login!">
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input name="password" type="password" class="form-control" id="password" required
-                    title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
-                    placeholder="Password...">
-            </div>
-            <div class="form-group">
-                <label for="password">Confirm password:</label>
-                <input name="password" type="password" class="form-control" id="password" required
-                    title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
-                    placeholder="Confirm password...">
-            </div>
-            <button type="update" class="btn btn-primary">Update</button>
-        </form>
+        <div id="fn" style="display: none;">
+            <form method="POST" action="/userprofile/edit/firstname" class="form-inline justify-content-center">
+                <div class="form-group mx-sm-5 mb-2">
+                    <input name="firstName" type="text" class="form-control" id="firstName"
+                        placeholder="Update your name...">
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">Submit change</button>
+            </form>
+        </div>
     </div>
+
+    <div class=" row justify-content-center mb-4">
+        <div class="form-row ">
+            <div class="col-xl ">
+                <label class="h3" for="lastName">Surname: {{lastName}} </label>
+            </div>
+            {{#if user_active}}
+            <div class="col-md-1">
+                <button onclick="myFunctionLn()">Edit</button>
+            </div>
+            {{/if}}
+        </div>
+        <div id="ln" style="display: none">
+            <form method="POST" action="/userprofile/edit/lastname" class="form-inline justify-content-center">
+                <div class="form-group mx-sm-5 mb-2">
+                    <input name="lastName" type="text" class="form-control" id="lastName" placeholder="Update Surname">
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">Submit change</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-4">
+        <div class="form-row ">
+            <div class="col-xl">
+                <label class="h3" for="email">Email: {{email}} </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-4">
+        <div class="form-row">
+            <div class="col-xl">
+                <label class="h4" for="password">Password </label>
+            </div>
+            {{#if user_active}}
+            <div class="col-md-1">
+                <button onclick="myFunctionPwd()">Edit</button>
+            </div>
+            {{/if}}
+        </div>
+        <br>
+        <div id="pwd" style="display: none;">
+            <form method="POST" action="/userprofile/edit/password" class="form-inline justify-content-center">
+                <div class="form-group mx-sm-5 mb-2">
+                    <input name="password" type="password" class="form-control" id="inputPassword1"
+                        placeholder="New password">
+                </div>
+                <div class="form-group mx-sm-5 mb-2">
+                    <label for="inputPassword2" class="sr-only">Confirm password</label>
+                    <input name="confirmPassword" type="password" class="form-control" id="inputPassword2"
+                        placeholder="Confirm password">
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">Submit change</button>
+            </form>
+        </div>
+    </div>
+
 </div>
+<script>
+    function myFunctionPwd() {
+        var x = document.getElementById("pwd");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+
+    function myFunctionLn() {
+        var x = document.getElementById("ln");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+
+    function myFunctionFn() {
+        var x = document.getElementById("fn");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+</script>

@@ -39,26 +39,24 @@ const tourismController = {
     */
     getLocationDetailPage: (req, res) => {
         var user_active = true;
-        var userRatingValue = false;
-        var userRatingFromDB = "";
         if (req.id == undefined) {
             user_active = false;
-        } else {
-            let userID = req.id[0];
-            let condition = { _id: req.params.id }
-            Location.findById(condition).lean().exec((err, Location) => {
-                if (err) {
-                    console.log("locations" + JSON.stringify(Location));
-                    console.log(err);
-                } else {
-                    res.render("details", {
-                        user_active,
-                        name: Location.name,
-                        description: Location.description,
-                    });
-                }
-            });
         }
+
+        // let userID = req.id[0];
+        let condition = { _id: req.params.id }
+        Location.findById(condition).lean().exec((err, Location) => {
+            if (err) {
+                console.log("locations" + JSON.stringify(Location));
+                console.log(err);
+            } else {
+                res.render("details", {
+                    user_active,
+                    name: Location.name,
+                    description: Location.description,
+                });
+            }
+        });
     },
 
 
@@ -144,7 +142,6 @@ const tourismController = {
         const sha256 = crypto.createHash('sha256');
         const hashedPassword = sha256.update(password).digest('base64');
         console.log("Email and pwd :" + email + " " + password)
-        //validateEmail(email,userdetails=>{
         const queryEmail = { email: email };
         User.findOne(queryEmail, (err, user) => {
             if (!user) {
@@ -158,8 +155,6 @@ const tourismController = {
                 if (hashedPassword == user.password) {
                     res.status('200');
                     console.log("********VALID USER" + user._id)
-                    //const userIdValue=Object.values(userdetails[0]);
-                    //
                     req.userID = user._id;
                     next();
                 } else {
@@ -250,32 +245,137 @@ const tourismController = {
     Display user profile details
     */
     getUserProfile: (req, res) => {
-        let user_active = true;
-        let user_id = req.params.id;
+        var user_active = true;
         if (req.id == undefined) {
             user_active = false;
-        } else {
-            let userID = req.id[0];
-            let condition = { _id: req.params.id }
-            User.findById(condition).lean().exec((err, User) => {
-                //User.findOne(, function (err, User) {
-                if (err) {
-                    console.log("User profile" + JSON.stringify(User));
-                    console.log(err)
-                } else {
-                    console.log(User)
+        }
+        //let userID = req.id[0];
+        let condition = { _id: req.params.id }
+        User.findById(condition).lean().exec((err, User) => {
+            //User.findOne(, function (err, User) {
+            if (err) {
+                console.log("User profile" + JSON.stringify(User));
+                console.log(err)
+            } else {
+                res.render('userprofile', {
+                    user_active,
+                    firstName: User.firstName,
+                    lastName: User.lastName,
+                    email: User.email,
+                });
+            }
+        });
+    },
+
+    updateFirstNameUserProfile: (req, res) => {
+        console.log("inside function update fn")
+        var user_active = true;
+        if (req.id == undefined) {
+            user_active = false;
+        }
+        const { firstName } = req.body;
+        const userId = req.id;
+        const firstNameVal = { firstName: firstName };
+        const userObjId = { _id: userId };
+        console.log(firstNameVal)
+        console.log(userObjId)
+        User.updateOne(userObjId, firstNameVal, (err, result) => {
+            if (err) {
+                console.log(err)
+                return
+            } else {
+                console.log("value of " + JSON.stringify(result))
+                User.findOne(userObjId, (err, userData) => {
                     res.render('userprofile', {
                         user_active,
-                        firstName: User.firstName,
-                        lastName: User.lastName,
-                        email: User.email,
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        email: userData.email,
+                        message: "Your name was updated successfuly!",
+                        messageClass: "alert-success"
                     });
-                }
+                })
+            };
+        })
 
-            });
+    },
 
+
+    updateLastNameUserProfile: (req, res) => {
+        console.log("inside function ln")
+        var user_active = true;
+        if (req.id == undefined) {
+            user_active = false;
         }
-    }
+        const { lastName } = req.body;
+        const userId = req.id;
+        const lastNameVal = { lastName: lastName };
+        const userObjId = { _id: userId };
+        console.log(lastNameVal)
+        console.log(userObjId)
+        User.updateOne(userObjId, lastNameVal, (err, result) => {
+            if (err) {
+                console.log(err)
+                return
+            } else {
+                console.log("value of " + JSON.stringify(result))
+                User.findOne(userObjId, (err, userData) => {
+                    res.render('userprofile', {
+                        user_active,
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        email: userData.email,
+                        message: "Your name was updated successfuly!",
+                        messageClass: "alert-success"
+                    });
+                })
+            };
 
+        })
+    },
+
+    updatePasswordUserProfile: (req, res) => {
+        console.log("inside function pwd")
+        var user_active = true;
+        if (req.id == undefined) {
+            user_active = false;
+        }
+        const { password } = req.body;
+        const { confirmPassword } = req.body;
+        let hashedPassword = "";
+        if (password === confirmPassword) {
+            const sha256 = crypto.createHash("sha256");
+            hashedPassword = sha256.update(password).digest("base64");
+        } else {
+            res.render("userprofile", {
+                message: "Password does not match.",
+                messageClass: "alert-danger",
+            });
+        }
+        const userId = req.id;
+        const passwordVal = { password: hashedPassword };
+        const userObjId = { _id: userId };
+        console.log(passwordVal)
+        console.log(userObjId)
+        User.updateOne(userObjId, passwordVal, (err, result) => {
+            if (err) {
+                console.log(err)
+                return
+            } else {
+                console.log("value of " + JSON.stringify(result))
+                User.findOne(userObjId, (err, userData) => {
+                    res.render('userprofile', {
+                        user_active,
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        email: userData.email,
+                        message: "Your name was updated successfuly!",
+                        messageClass: "alert-success"
+                    });
+                })
+            };
+        })
+    },
 }
+
 module.exports = tourismController;
