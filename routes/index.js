@@ -13,7 +13,7 @@ const { getHomePage,
   updateFirstNameUserProfile,
   updateLastNameUserProfile,
   updatePasswordUserProfile,
-  getLocationDetailPage,postComments,updateLikes} = require('../controllers/tourismController');
+  getLocationDetailPage,postComments,updateLikes,acceptLocations,deleteLocations} = require('../controllers/tourismController');
 
 const { verifyAuthToken,
   setAuthToken,
@@ -26,6 +26,16 @@ router.get("/", verifyAuthToken, getHomePage);
 Display respective Location Page
 */
 router.get('/location/:id', verifyAuthToken, getLocationDetailPage);
+
+/*
+Admin user approve the locations
+*/
+router.get('/approve/:id', acceptLocations);
+
+/*
+Admin user reject the locations
+*/
+ router.get('/reject/:id', deleteLocations); 
 
 /*
 Display Register page
