@@ -1,26 +1,106 @@
 const crypto = require('crypto');
-
 // Bring in User Model
 let User = require('../models/users');
 let Location = require('../models/locations');
-
 const tourismController = {
     /*
-        Display HomePage Page
-        */
-    getHomePage: (req, res) => {
+       Display HomePage Page
+    */
+    getHomePage: async(req, res) => {
         var user_active = true;
-        if (req.id == undefined) user_active = false;
-        let user_id = req.id
-        //A query to retrieve isvalid=true locations from db .
-
-        res.render('home', {
-            title: "Locations",
-            user_id,
-            user_active
-        });
+        let user_id = req.id;
+        let user_admin = true;
+        if (req.id == undefined) {
+            user_active = false;
+            Location.find({ isValidated: true}).lean().exec(function(err,Location) {
+                var locationsMap = {};
+                Location.forEach(function(location) {
+                    locationsMap[location._id] = location;
+                });
+               const LocationsSize = Object.keys(locationsMap).length;
+               res.render('home', {
+                    user_id,
+                    user_active,
+                    user_admin,                
+                    locationsMap,
+                    locationsLength :LocationsSize>0
+                });
+                    
+              }); 
+        }else{
+            let toCheckUser = {_id:req.id};
+            //check if the logged in user is admin or not.
+            User.findOne(toCheckUser,{isAdmin:1,_id:0},(err,User)=>{
+                if(User.isAdmin){
+                    //if admin user display all isvalidated:false locations
+                    user_admin = true;
+                    Location.find({ isValidated: false}).lean().exec(function(err,Location) {
+                        var locationsMap = {};
+                        Location.forEach(function(location) {
+                            locationsMap[location._id] = location;
+                        });
+                       const LocationsSize = Object.keys(locationsMap).length;
+                        res.render('home', {
+                            user_id,
+                            user_active,
+                            user_admin,                
+                            locationsMap,
+                            locationsLength :LocationsSize>0
+                        });
+                            
+                      });
+                }else{
+                    //else display all isvalidated:true Locations
+                    user_admin = false;
+                    Location.find({ isValidated: true}).lean().exec(function(err,Location) {
+                        var locationsMap = {};
+                        Location.forEach(function(location) {
+                            locationsMap[location._id] = location;
+                        });
+                       const LocationsSize = Object.keys(locationsMap).length;
+                        res.render('home', {
+                            user_id,
+                            user_active,
+                            user_admin,                
+                            locationsMap,
+                            locationsLength :LocationsSize>0
+                        });
+                      });
+                }
+            });
+        }
     },
 
+    /*
+        To validate the new locations
+     */
+    acceptLocations: (req, res) => {
+        let idToValidate = { _id: req.params.id };
+        let updateField = {isValidated : true}
+        Location.update(idToValidate,updateField,(err,results)=>{
+            if(err){
+                console.log(err);
+                return;
+            }else{
+                res.redirect('/');
+            }
+        });
+    },
+    /*
+        To delete the new locations
+     */
+    deleteLocations: (req, res) => {
+        let idToValidate = { _id: req.params.id };
+        Location.deleteOne(idToValidate,(err,results)=>{
+            if(err){
+                console.log(err);
+                return;
+            }else{
+                res.redirect('/');
+            }
+        });
+    },
+    
     /*
     Validate homepage
     */
@@ -38,7 +118,6 @@ const tourismController = {
     Display Locations Details Page
     */
    getLocationDetailPage: (req, res) => {
-    console.log("***req.id"+req.id)
     var user_active = true;
     var commentsValue = false;
     var commentsFromDB = ""; 
@@ -69,10 +148,7 @@ const tourismController = {
                 });
             }
         });
-    
-},
-
-
+    },
 
     /*
     Register User details
@@ -83,11 +159,6 @@ const tourismController = {
         const emailPattern = "^[a-zA-Z0-9.!#$%£&'*+/=?^_`{|}~-]+@[a-zA-Z]+(\.)+([a-zA-Z]+)*$";
         const namePattern = "^[a-zA-Z][a-zA-Z ]+[a-zA-Z]+$";
         const passwordPattern = "^[A-Za-z0-9].{6,}"
-
-        console.log("Firstname " + firstName);
-        console.log("Lastname " + lastName);
-        console.log("Email " + email);
-        console.log("password " + password);
         if (!firstName.match(namePattern)) {
             res.render('register', {
                 message: 'Please enter Valid firstName',
@@ -149,26 +220,22 @@ const tourismController = {
         res.render('login');
     },
     /*
-   Verify login
+       Verify login
    */
     verifyLogin: (req, res, next) => {
         const { email, password } = req.body;
         const sha256 = crypto.createHash('sha256');
         const hashedPassword = sha256.update(password).digest('base64');
-        console.log("Email and pwd :" + email + " " + password)
         const queryEmail = { email: email };
         User.findOne(queryEmail, (err, user) => {
             if (!user) {
-                console.log("Account doesnot exists" + user)
                 res.render('login', {
                     message: 'Account doesnot exist!!Please register your account.',
                     messageClass: 'alert-danger'
                 });
             } else {
-                console.log("Account exists" + JSON.stringify(user))
                 if (hashedPassword == user.password) {
                     res.status('200');
-                    console.log("********VALID USER" + user._id)
                     req.userID = user._id;
                     next();
                 } else {
@@ -184,21 +251,20 @@ const tourismController = {
     Search the Location by name
     */
     searchLocation: (req, res) => {
-        console.log("User searched item:" + `${req.query.locationVal}`);
         const locationquery = { name: `${req.query.locationVal}` };
-        console.log("*********Query is*******" + JSON.stringify(locationquery));
-        Location.findOne(locationquery, (err, Location) => {
-            console.log("locations length" + JSON.stringify(Location));
+        Location.find(locationquery).lean().exec(function(err,Location) {
             if (err) {
-                console.log("locations" + JSON.stringify(Location));
                 console.log(err);
             } else {
+                var locationsMap = {};
+                Location.forEach(function(location) {
+                    locationsMap[location._id] = location;
+                });
+                const LocationsSize = Object.keys(locationsMap).length;
                 res.render("partials/homelocations", {
                     layout: false,
-                    objId: Location._id,
-                    name: Location.name,
-                    description: Location.description,
-                    isValidated: Location.isValidated,
+                    locationsMap,
+                    locationsLength :LocationsSize>0
                 });
             }
         });
@@ -221,12 +287,13 @@ const tourismController = {
     Submit location details to Database
     */
     submitLocationPage: (req, res) => {
-        console.log("**Inside submitLocationPage****");
+        var user_active = true;
+        if (req.id == undefined) {
+            user_active = false;
+        }
         const { locationName, description } = req.body;
         const pattern = "^[a-zA-Z][a-zA-Z ]+[a-zA-Z ]+$";
         const descriptionpattern = "^[a-zA-Z][a-zA-Z. ]+[a-zA-Z. ]+$";
-        console.log("Location name and description:" + locationName + description)
-
         if (!locationName.match(pattern)) {
             res.render('location', {
                 message: 'Please enter Valid location name',
@@ -245,8 +312,8 @@ const tourismController = {
             }).save(function (err, doc) {
                 if (err) res.json(err);
                 else {
-                    res.render('home', {
-                        message: 'Congrats!Your location has been created successfuly!Please wait for administrator to approve it!',
+                    res.render('location',{
+                        message: 'Thank you for upload!You location will be displayed once the administrator approves it!',
                         messageClass: 'alert-success'
                     });
                 }
@@ -262,12 +329,9 @@ const tourismController = {
         if (req.id == undefined) {
             user_active = false;
         }
-        //let userID = req.id[0];
         let condition = { _id: req.params.id }
         User.findById(condition).lean().exec((err, User) => {
-            //User.findOne(, function (err, User) {
             if (err) {
-                console.log("User profile" + JSON.stringify(User));
                 console.log(err)
             } else {
                 res.render('userprofile', {
@@ -284,7 +348,6 @@ const tourismController = {
     Update first name of user.
     */
     updateFirstNameUserProfile: (req, res) => {
-        console.log("inside function update fn")
         var user_active = true;
         if (req.id == undefined) {
             user_active = false;
@@ -293,14 +356,11 @@ const tourismController = {
         const userId = req.id;
         const firstNameVal = { firstName: firstName };
         const userObjId = { _id: userId };
-        console.log(firstNameVal)
-        console.log(userObjId)
         User.updateOne(userObjId, firstNameVal, (err, result) => {
             if (err) {
                 console.log(err)
                 return
             } else {
-                console.log("value of " + JSON.stringify(result))
                 User.findOne(userObjId, (err, userData) => {
                     res.render('userprofile', {
                         user_active,
@@ -313,14 +373,12 @@ const tourismController = {
                 })
             };
         })
-
     },
 
     /*
     Update Last name of user.
     */
     updateLastNameUserProfile: (req, res) => {
-        console.log("inside function ln")
         var user_active = true;
         if (req.id == undefined) {
             user_active = false;
@@ -329,14 +387,11 @@ const tourismController = {
         const userId = req.id;
         const lastNameVal = { lastName: lastName };
         const userObjId = { _id: userId };
-        console.log(lastNameVal)
-        console.log(userObjId)
         User.updateOne(userObjId, lastNameVal, (err, result) => {
             if (err) {
                 console.log(err)
                 return
             } else {
-                console.log("value of " + JSON.stringify(result))
                 User.findOne(userObjId, (err, userData) => {
                     res.render('userprofile', {
                         user_active,
@@ -348,14 +403,12 @@ const tourismController = {
                     });
                 })
             };
-
         })
     },
     /*
-    Update password of user.
+        Update password of user.
     */
     updatePasswordUserProfile: (req, res) => {
-        console.log("inside function pwd")
         var user_active = true;
         if (req.id == undefined) {
             user_active = false;
@@ -375,14 +428,11 @@ const tourismController = {
         const userId = req.id;
         const passwordVal = { password: hashedPassword };
         const userObjId = { _id: userId };
-        console.log(passwordVal)
-        console.log(userObjId)
         User.updateOne(userObjId, passwordVal, (err, result) => {
             if (err) {
                 console.log(err)
                 return
             } else {
-                console.log("value of " + JSON.stringify(result))
                 User.findOne(userObjId, (err, userData) => {
                     res.render('userprofile', {
                         user_active,
@@ -401,15 +451,9 @@ const tourismController = {
     Update user comments into database.
     */
     postComments: (req, res) => {
-        console.log("********Inside postComments***********");
         const {commentsVal,locationId}= req.body;
-        // const activeuserid= req.id[0];
-        console.log("User Comments" + commentsVal);
-        console.log("locationId" + locationId);
         const userComments = { comments: commentsVal };
         const locationObjId= { _id: locationId };
-        console.log("*********User comments in object is*******" + JSON.stringify(userComments));
-        console.log("*********Location id  is*******" + JSON.stringify(locationObjId));
         Location.update(locationObjId,userComments,(err,results)=>{
             if(err){
                 console.log(err);
@@ -423,13 +467,9 @@ const tourismController = {
     Update user likes into database.
     */
     updateLikes: (req, res) => {
-        console.log("********Inside updateLikes***********");
         const {locationId}= req.body;
-        // const activeuserid= req.id[0];
-        console.log("locationId" + locationId);
         const locationObjId = { _id: locationId };
         const update = { $inc: { likes: 1 } };
-        console.log("*********Location id  is*******" + JSON.stringify(locationObjId));
         Location.update(locationObjId,update,(err,results)=>{
             if(err){
                 console.log(err);
@@ -440,5 +480,4 @@ const tourismController = {
         });
     },
 }
-
 module.exports = tourismController;
