@@ -1,5 +1,8 @@
 var express = require("express");
 var router = express.Router();
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+
 const { getHomePage,
   getLoginPage,
   verifyLogin,
@@ -69,7 +72,7 @@ router.get('/newLocation',verifyAuthToken, getLocationPage);
 /*
 Submit Location page
 */
-router.post('/newLocation', submitLocationPage);
+router.post('/newLocation',upload.single('uploadedfile'),verifyAuthToken, submitLocationPage);
 
 /*
 Display search by location name

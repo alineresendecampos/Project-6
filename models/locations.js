@@ -19,10 +19,17 @@ let locationsSchema = mongoose.Schema({
     type: Boolean,
     required: true,
   },
-  comments: {
-    type: String,
-    required: false,
+  postedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
+  comments: [{
+    text: String,
+    postedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
+  }],
   likes: {
     type: Number,
     required: false,

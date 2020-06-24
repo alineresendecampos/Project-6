@@ -26,7 +26,7 @@
                 {{message}}
             </div>
         {{/if}}
-        <form method="POST" action="/newLocation">
+        <form method="POST" action="/newLocation" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="locationName"> Name :<sup>*</sup></label>
                 <input name="locationName" type="text" class="form-control" id="locationName" required>
@@ -35,7 +35,7 @@
                 <label for="description">Description <sup>*</sup></label>
                 <input name="description" type="textArea" class="form-control" id="description" required>
             </div>
-            <div class="form-group">
+             <div class="form-group">
                 <label for="image">Upload image :</label>
                 <input type="file" name="uploadedfile"  class="form-control btn " id="file">
             </div>

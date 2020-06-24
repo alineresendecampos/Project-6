@@ -2,14 +2,15 @@
  {{#if locationsLength}}
     {{#each locationsMap}} 
     <tr>
-        {{!-- <td><a href="/movie/{{this.id}}"><img src="https://image.tmdb.org/t/p/w185/{{this.poster_path}}" alt="Poster Image"></a></td> --}}
+        <td><img src='data:{{locationImage.contentType}};base64,{{imageToBase64 locationImage.data}}' style="width:200px;"></td>
         <td><a href="/location/{{_id}}">{{name}}</a></td>
         <td>{{description}}</td>
-        <td>{{comments}}</td>
+        {{#each comments}}
+            <td>{{text}}</td>
+        {{/each}}
         <td>{{likes}}</td>
-        
         {{#if isValidated}} 
-            <td>Approved</td> 
+            <td style="color: blue;">Approved</td> 
         {{else}}
             <td>
                 <a href="/approve/{{_id}}"><button class="btn btn-success">Approve</button></a>

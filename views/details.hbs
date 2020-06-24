@@ -17,7 +17,7 @@
     </span>
     {{/unless}}
     <div class="row">
-        <div class="col-sm-4"><a href="#">Image</a></div>
+        <div class="col-sm-4"><img src='data:{{locationImage.contentType}};base64,{{imageToBase64 locationImage.data}}' style="width:300px;"></div>
         <div class="col-sm-8" id="locationitems">
             <ul class="list-group">
                 <li class="list-group-item">
@@ -35,7 +35,7 @@
                     </li>
                     {{#if commentsValue}}
                         <li class="list-group-item" id="commentsFromDB">
-                             Comments : <i>{{commentsFromDB}}</i>
+                             Comments : <i>{{commentsFromDB}}</i><a href="/userprofile/{{ postedbyIDFromDB}}">User</a>
                         </li>
                     {{/if}}
                    
@@ -51,7 +51,7 @@
                 {{else}}
                     {{#if commentsValue}}
                         <li class="list-group-item">
-                            Comments : <i>{{commentsFromDB}}</i> 
+                            Comments : <i>{{commentsFromDB}}</i><a href="/userprofile/{{ postedbyIDFromDB}}">{{userFirstName}}</a>
                         </li> 
                     {{/if}}
                     {{#if likes}}
@@ -69,6 +69,8 @@ $(document).ready(function () {
     var locationId = $("#locationIdValue").val();
     var commentsVal = $("#comments").val();
     $("#likesButton").on('click',function() {
+        console.log("**********value of locationid is"+locationId)
+        console.log("*********likes*")
         $.ajax({
             // The URL for the request
             url:"http://localhost:3000/updateLikes/",
@@ -93,12 +95,15 @@ $(document).ready(function () {
             // status codes are passed to the function
         .fail(function( xhr, status, errorThrown ) {
             alert( "Sorry,there was a problem!" );
+            console.log( "Error: " + errorThrown );
             console.log( "Status: " + status );
         })
     });
     
     $("#postComments").on('click',function() {
         var commentsVal = $("#comments").val();
+        console.log("User entered comments"+commentsVal);
+        console.log("locationID"+locationId);
             $.ajax({
             // The URL for the request
             url:"http://localhost:3000/postComments/",
@@ -114,15 +119,17 @@ $(document).ready(function () {
         })
             // Code to run if the request succeeds (is done);
             // The response is passed to the function
-        .done(function(json) {
-            console.log(json);
-            $('#commentsFromDB').append(commentsVal);
+        .done(function( data ) {
+            console.log(data);
+            $('#commentsFromDB').append(data.postedBy);
             $("#comments").txt(''); 
+            
         })
             // Code to run if the request fails; the raw request and
             // status codes are passed to the function
         .fail(function( xhr, status, errorThrown ) {
             alert( "Sorry,there was a problem!" );
+            console.log( "Error: " + errorThrown );
             console.log( "Status: " + status );
         })
     });

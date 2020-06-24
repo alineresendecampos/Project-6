@@ -33,6 +33,9 @@ app.engine(
     layoutsDir: "views/layout",
     defaultLayout: "main",
     extname: "hbs",
+    helpers: {
+      imageToBase64: (data) => data.buffer.toString('base64'),
+    }
   })
 );
 app.set("view engine", "hbs");

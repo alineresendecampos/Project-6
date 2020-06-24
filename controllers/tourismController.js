@@ -1,23 +1,16 @@
 const crypto = require('crypto');
-const multer = require('multer');
+const fs = require('fs');
 
 // Bring in User Model
 let User = require('../models/users');
 let Location = require('../models/locations');
 
-/*With multer we need to Set Storage Engine*/
-const storage = multer.diskStorage({
-    destination: './Images',
-    filename: function(req, file, cb){
-      cb(null,file.fieldname + '-' + Date.now() + path.extname(file.originalname));             //we are calling the callback
-    }
-  });
-
 const tourismController = {
     /*
        Display HomePage Page
     */
-    getHomePage: (req, res) => {
+    getHomePage: async(req, res) => {
+        console.log("***********Inside getHomepage method");
         var user_active = true;
         let user_id = req.id;
         let user_admin = true;
@@ -26,8 +19,10 @@ const tourismController = {
             Location.find({ isValidated: true}).lean().exec(function(err,Location) {
                 var locationsMap = {};
                 Location.forEach(function(location) {
+                    console.log("ITEMS are:"+location)
                     locationsMap[location._id] = location;
                 });
+               console.log("!!!!!!!!!!!!!"+user_admin+ JSON.stringify(locationsMap));
                const LocationsSize = Object.keys(locationsMap).length;
                res.render('home', {
                     user_id,
@@ -48,8 +43,10 @@ const tourismController = {
                     Location.find({ isValidated: false}).lean().exec(function(err,Location) {
                         var locationsMap = {};
                         Location.forEach(function(location) {
+                            console.log("ITEMS are:"+location)
                             locationsMap[location._id] = location;
                         });
+                       console.log("!!!!!!!!!!!!!"+user_admin+ JSON.stringify(locationsMap));
                        const LocationsSize = Object.keys(locationsMap).length;
                         res.render('home', {
                             user_id,
@@ -66,8 +63,10 @@ const tourismController = {
                     Location.find({ isValidated: true}).lean().exec(function(err,Location) {
                         var locationsMap = {};
                         Location.forEach(function(location) {
+                            console.log("ITEMS are:"+location)
                             locationsMap[location._id] = location;
                         });
+                       console.log("!!!!!!!!!!!!!"+user_admin+ JSON.stringify(locationsMap));
                        const LocationsSize = Object.keys(locationsMap).length;
                         res.render('home', {
                             user_id,
@@ -86,6 +85,7 @@ const tourismController = {
         To validate the new locations
      */
     acceptLocations: (req, res) => {
+        console.log("***********Inside acceptLocations method");
         let idToValidate = { _id: req.params.id };
         let updateField = {isValidated : true}
         Location.update(idToValidate,updateField,(err,results)=>{
@@ -101,6 +101,7 @@ const tourismController = {
         To delete the new locations
      */
     deleteLocations: (req, res) => {
+        console.log("***********Inside deleteLocations method");
         let idToValidate = { _id: req.params.id };
         Location.deleteOne(idToValidate,(err,results)=>{
             if(err){
@@ -129,9 +130,11 @@ const tourismController = {
     Display Locations Details Page
     */
    getLocationDetailPage: (req, res) => {
+    console.log("***req.id"+req.id)
     var user_active = true;
     var commentsValue = false;
-    var commentsFromDB = ""; 
+    var commentsFromDB,postedbyIDFromDB = ''; 
+    let userFirstName,userLastName = '';
     if (req.id == undefined) {
         user_active = false;
     } 
@@ -142,20 +145,33 @@ const tourismController = {
                commentsValue=false;
             }else{
                 commentsValue=true;
-                commentsFromDB=Location.comments;
+                if(JSON.stringify(Location.comments[0]) !=undefined){
+                    commentsFromDB=Location.comments[0].text;
+                    postedbyIDFromDB=Location.comments[0].postedBy;
+                    const useridvalue = {_id: postedbyIDFromDB} ;
+                    User.findOne(useridvalue,{firstName:1,lastName:1},(err,User)=>{
+                        userFirstName = User.firstName;
+                        userLastName=User.lastName;
+                        console.log("**********"+userFirstName+userLastName);
+                    });  
+                }
+               
             }
         });
         Location.findById(condition).lean().exec((err, Location) => {
             if (err) {
                 console.log(err);
             } else {
+                console.log("**********222"+userFirstName+userLastName)
                 res.render("details", {
                     user_active,
-                    commentsValue,commentsFromDB,
+                    commentsValue,
+                    commentsFromDB,userFirstName,userLastName,postedbyIDFromDB,
                     objId: Location._id,
                     name: Location.name,
                     description: Location.description,
-                    likes:Location.likes
+                    likes:Location.likes,
+                    locationImage:Location.locationImage
                 });
             }
         });
@@ -170,6 +186,11 @@ const tourismController = {
         const emailPattern = "^[a-zA-Z0-9.!#$%£&'*+/=?^_`{|}~-]+@[a-zA-Z]+(\.)+([a-zA-Z]+)*$";
         const namePattern = "^[a-zA-Z][a-zA-Z ]+[a-zA-Z]+$";
         const passwordPattern = "^[A-Za-z0-9].{6,}"
+
+        console.log("Firstname " + firstName);
+        console.log("Lastname " + lastName);
+        console.log("Email " + email);
+        console.log("password " + password);
         if (!firstName.match(namePattern)) {
             res.render('register', {
                 message: 'Please enter Valid firstName',
@@ -237,16 +258,20 @@ const tourismController = {
         const { email, password } = req.body;
         const sha256 = crypto.createHash('sha256');
         const hashedPassword = sha256.update(password).digest('base64');
+        console.log("Email and pwd :" + email + " " + password)
         const queryEmail = { email: email };
         User.findOne(queryEmail, (err, user) => {
             if (!user) {
+                console.log("Account doesnot exists" + user)
                 res.render('login', {
                     message: 'Account doesnot exist!!Please register your account.',
                     messageClass: 'alert-danger'
                 });
             } else {
+                console.log("Account exists" + JSON.stringify(user))
                 if (hashedPassword == user.password) {
                     res.status('200');
+                    console.log("********VALID USER" + user._id)
                     req.userID = user._id;
                     next();
                 } else {
@@ -262,13 +287,16 @@ const tourismController = {
     Search the Location by name
     */
     searchLocation: (req, res) => {
+        console.log("User searched item:" + `${req.query.locationVal}`);
         const locationquery = { name: `${req.query.locationVal}` };
         Location.find(locationquery).lean().exec(function(err,Location) {
             if (err) {
+                console.log("locations" + JSON.stringify(Location));
                 console.log(err);
             } else {
                 var locationsMap = {};
                 Location.forEach(function(location) {
+                    console.log("ITEMS are:"+location)
                     locationsMap[location._id] = location;
                 });
                 const LocationsSize = Object.keys(locationsMap).length;
@@ -292,43 +320,23 @@ const tourismController = {
         res.render('location',{
             user_active
         });
-        //Init upload
-        const upload = multer({
-            storage:storage,
-            limits:{fileSize: 1000000},
-            fileFilter: function(req, file, cb){
-                checkFileType(file, cb);
-            }
-            }).single('uploadedfile');
-
-            //check File Type
-            function checkFileType(file, cb){
-                //Allowed ext
-                const filetypes = /jpeg|jpg|png|gif/;
-                //check ext
-                const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-                //check mime
-                const mimetype = filetypes.test(file.mimetype)   //json
-
-                if(mimetype && extname){
-                    return cb(null, true);
-                }else{
-                    cb('Error: Images Only')
-                }
-            }
     },
 
     /*
     Submit location details to Database
     */
     submitLocationPage: (req, res) => {
+        console.log("**Inside submitLocationPage****");
         var user_active = true;
         if (req.id == undefined) {
             user_active = false;
         }
         const { locationName, description } = req.body;
+        var imageData = fs.readFileSync(req.file.path)
+        let bufferImage = new Buffer(imageData.toString('base64'), 'base64');
         const pattern = "^[a-zA-Z][a-zA-Z ]+[a-zA-Z ]+$";
         const descriptionpattern = "^[a-zA-Z][a-zA-Z. ]+[a-zA-Z. ]+$";
+        console.log("Location name and description:" + locationName + description)
         if (!locationName.match(pattern)) {
             res.render('location', {
                 message: 'Please enter Valid location name',
@@ -339,21 +347,14 @@ const tourismController = {
                 message: 'Please enter Valid description',
                 messageClass: 'alert-danger'
             });
-            upload(req, res, (err) =>{
-                if(err){
-                res.render('location',{
-                    message: 'err',
-                    messageClass: 'alert-danger'
-                });
-                }else{
-                    console.log(req.file);
-                    res.send('test')
-                }
-            });
         } else {
+           let locationimagdata= { data: bufferImage,
+             contentType:req.file.mimetype
+            }
             let newLocation = new Location({
                 name: locationName,
                 description: description,
+                locationImage:locationimagdata,
                 isValidated: false
             }).save(function (err, doc) {
                 if (err) res.json(err);
@@ -375,9 +376,12 @@ const tourismController = {
         if (req.id == undefined) {
             user_active = false;
         }
+        //let userID = req.id[0];
         let condition = { _id: req.params.id }
         User.findById(condition).lean().exec((err, User) => {
+            //User.findOne(, function (err, User) {
             if (err) {
+                console.log("User profile" + JSON.stringify(User));
                 console.log(err)
             } else {
                 res.render('userprofile', {
@@ -394,6 +398,7 @@ const tourismController = {
     Update first name of user.
     */
     updateFirstNameUserProfile: (req, res) => {
+        console.log("inside function update fn")
         var user_active = true;
         if (req.id == undefined) {
             user_active = false;
@@ -402,11 +407,14 @@ const tourismController = {
         const userId = req.id;
         const firstNameVal = { firstName: firstName };
         const userObjId = { _id: userId };
+        console.log(firstNameVal)
+        console.log(userObjId)
         User.updateOne(userObjId, firstNameVal, (err, result) => {
             if (err) {
                 console.log(err)
                 return
             } else {
+                console.log("value of " + JSON.stringify(result))
                 User.findOne(userObjId, (err, userData) => {
                     res.render('userprofile', {
                         user_active,
@@ -425,6 +433,7 @@ const tourismController = {
     Update Last name of user.
     */
     updateLastNameUserProfile: (req, res) => {
+        console.log("inside function ln")
         var user_active = true;
         if (req.id == undefined) {
             user_active = false;
@@ -433,11 +442,14 @@ const tourismController = {
         const userId = req.id;
         const lastNameVal = { lastName: lastName };
         const userObjId = { _id: userId };
+        console.log(lastNameVal)
+        console.log(userObjId)
         User.updateOne(userObjId, lastNameVal, (err, result) => {
             if (err) {
                 console.log(err)
                 return
             } else {
+                console.log("value of " + JSON.stringify(result))
                 User.findOne(userObjId, (err, userData) => {
                     res.render('userprofile', {
                         user_active,
@@ -455,6 +467,7 @@ const tourismController = {
         Update password of user.
     */
     updatePasswordUserProfile: (req, res) => {
+        console.log("inside function pwd")
         var user_active = true;
         if (req.id == undefined) {
             user_active = false;
@@ -474,11 +487,14 @@ const tourismController = {
         const userId = req.id;
         const passwordVal = { password: hashedPassword };
         const userObjId = { _id: userId };
+        console.log(passwordVal)
+        console.log(userObjId)
         User.updateOne(userObjId, passwordVal, (err, result) => {
             if (err) {
                 console.log(err)
                 return
             } else {
+                console.log("value of " + JSON.stringify(result))
                 User.findOne(userObjId, (err, userData) => {
                     res.render('userprofile', {
                         user_active,
@@ -497,15 +513,32 @@ const tourismController = {
     Update user comments into database.
     */
     postComments: (req, res) => {
+        console.log("********Inside postComments***********");
         const {commentsVal,locationId}= req.body;
-        const userComments = { comments: commentsVal };
+        const activeuserid= req.id;
+        console.log("User Comments" + commentsVal);
+        console.log("locationId" + locationId);
+        const userObjId= { _id: activeuserid };
+        let userCommentsArray = [];
+        const userComments ={ text: commentsVal,postedBy:userObjId  } ;
+        userCommentsArray.push(userComments);
+        const commentstostore ={comments: userCommentsArray};
         const locationObjId= { _id: locationId };
-        Location.update(locationObjId,userComments,(err,results)=>{
+        console.log("*********User comments in object is*******" + JSON.stringify(commentstostore));
+        console.log("*********Location id  is*******" + JSON.stringify(locationObjId));
+        Location.update(locationObjId,commentstostore,(err,results)=>{
             if(err){
                 console.log(err);
                 return;
             }else{
-                res.send(results);
+            Location.find({})
+            .populate('postedBy')
+            .populate('comments.postedBy')
+            .lean().exec(function(error, Location) {
+                console.log(JSON.stringify(Location))
+                res.send(Location);
+            })
+               
             }
         });
     },
@@ -513,9 +546,13 @@ const tourismController = {
     Update user likes into database.
     */
     updateLikes: (req, res) => {
+        console.log("********Inside updateLikes***********");
         const {locationId}= req.body;
+        // const activeuserid= req.id[0];
+        console.log("locationId" + locationId);
         const locationObjId = { _id: locationId };
         const update = { $inc: { likes: 1 } };
+        console.log("*********Location id  is*******" + JSON.stringify(locationObjId));
         Location.update(locationObjId,update,(err,results)=>{
             if(err){
                 console.log(err);
