@@ -1,7 +1,18 @@
 const crypto = require('crypto');
+const multer = require('multer');
+
 // Bring in User Model
 let User = require('../models/users');
 let Location = require('../models/locations');
+
+/*With multer we need to Set Storage Engine*/
+const storage = multer.diskStorage({
+    destination: './Images',
+    filename: function(req, file, cb){
+      cb(null,file.fieldname + '-' + Date.now() + path.extname(file.originalname));             //we are calling the callback
+    }
+  });
+
 const tourismController = {
     /*
        Display HomePage Page
@@ -281,6 +292,30 @@ const tourismController = {
         res.render('location',{
             user_active
         });
+        //Init upload
+        const upload = multer({
+            storage:storage,
+            limits:{fileSize: 1000000},
+            fileFilter: function(req, file, cb){
+                checkFileType(file, cb);
+            }
+            }).single('uploadedfile');
+
+            //check File Type
+            function checkFileType(file, cb){
+                //Allowed ext
+                const filetypes = /jpeg|jpg|png|gif/;
+                //check ext
+                const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+                //check mime
+                const mimetype = filetypes.test(file.mimetype)   //json
+
+                if(mimetype && extname){
+                    return cb(null, true);
+                }else{
+                    cb('Error: Images Only')
+                }
+            }
     },
 
     /*
@@ -303,6 +338,17 @@ const tourismController = {
             res.render('location', {
                 message: 'Please enter Valid description',
                 messageClass: 'alert-danger'
+            });
+            upload(req, res, (err) =>{
+                if(err){
+                res.render('location',{
+                    message: 'err',
+                    messageClass: 'alert-danger'
+                });
+                }else{
+                    console.log(req.file);
+                    res.send('test')
+                }
             });
         } else {
             let newLocation = new Location({
