@@ -6,7 +6,7 @@ const tourismController = {
     /*
        Display HomePage Page
     */
-    getHomePage: async(req, res) => {
+    getHomePage: (req, res) => {
         var user_active = true;
         let user_id = req.id;
         let user_admin = true;
